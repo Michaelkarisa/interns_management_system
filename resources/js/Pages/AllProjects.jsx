@@ -15,8 +15,8 @@ import {
 } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import axios from 'axios';
-import { PaginationControls } from '@/Components/ui/PaginationControls';
-import DateInputWithIcon from '@/Components/ui/DateInputWithIcon';
+import { PaginationControls } from '@/Layouts/PaginationControls';
+import DateInputWithIcon from '@/Layouts/DateInputWithIcon';
 import { Input } from '@/Components/ui/input';
 
 // ✅ Zustand Store
@@ -51,7 +51,7 @@ const useProjectsStore = create((set, get) => ({
   fetchProjects: async (params = {}) => {
     set({ loading: true });
     try {
-      const response = await axios.get('/filterProjects', { params });
+      const response = await axios.get('/projects/filter', { params });
       set({ projectsData: response.data });
     } catch (error) {
       console.error('Failed to fetch projects:', error);

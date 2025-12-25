@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Services\SecurityService;
@@ -30,31 +30,27 @@ class UserController extends Controller
         $this->audit       = $auditService;
     }
 
- public function index()
-{
-    $data = $this->userService->getUsers([], 15, 0);
+    public function index()
+    {
+        $data = $this->userService->getUsers([], 15, 0);
 
-    // Log view
-    Log::info('Users list viewed', [
-        'user_id' => Auth::id(),
-        'count'   => count($data),
-    ]);
+        // Log view
+        Log::info('Users list viewed', ['user_id' => Auth::id(), 'count' => count($data)]);
 
-    if ($this->audit) {
-        $this->audit->log(
-            'users_list_viewed',
-            'User',
-            null,
-            ['count' => count($data)]
-        );
+        if ($this->audit) {
+            $this->audit->log(
+                'users_list_viewed',
+                'User',
+                null,
+                ['count' => count($data)]
+            );
+        }
+
+        return Inertia::render("UsersList", [
+            'activePath' => 'users',
+            'data'       => $data,
+        ]);
     }
-
-    return response()->json([
-        'activePath' => 'users',
-        'data'       => $data,
-    ], 200);
-}
-
 
     public function promoteToAdmin(string $id)
     {

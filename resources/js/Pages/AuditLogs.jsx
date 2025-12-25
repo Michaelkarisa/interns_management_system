@@ -23,14 +23,14 @@ import {
   Download,
 } from "lucide-react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { PaginationControls } from '@/Components/ui/PaginationControls';
+import { PaginationControls } from '@/Layouts/PaginationControls';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import DateInputWithIcon from "@/Components/ui/DateInputWithIcon";
+import DateInputWithIcon from "@/Layouts/DateInputWithIcon";
 
 // ✅ Zustand Store
 const useAuditLogStore = create((set, get) => ({
@@ -66,7 +66,7 @@ const useAuditLogStore = create((set, get) => ({
   fetchLogs: async (params = {}) => {
     set({ loading: true });
     try {
-      const response = await axios.get("/filterLogs", { params });
+      const response = await axios.get("/auditlogs/filter", { params });
       set({ logsData: response.data });
         console.log("params: ", params);
       console.log("data: ", response.data);

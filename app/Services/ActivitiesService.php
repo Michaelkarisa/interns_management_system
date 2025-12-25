@@ -14,30 +14,31 @@ class ActivitiesService
         return Activity::count();
     }
 
- public function getActivities(array $filters = [], int $perPage = null, int $page = null)
+
+
+public function getActivities(array $filters = [], int $perPage = null, int $page = null)
 {
     $query = Activity::query()
-        ->with(['intern', 'team']); // SoftDeleted activities are automatically excluded
+        ->with(['intern', 'team']);
 
-    // Filter by main intern
+    // Filter by intern ID (resolved from name in controller)
     if (!empty($filters['intern_id'])) {
         $query->where('intern_id', $filters['intern_id']);
     }
 
-    // Filter by team member
+    // Filter by team member (if needed)
     if (!empty($filters['team_member_id'])) {
         $query->whereHas('team', function ($q) use ($filters) {
             $q->where('interns.id', $filters['team_member_id']);
-            // SoftDeleted interns are automatically excluded via Intern model
         });
     }
 
-    // Filter by title
+    // Title filter
     if (!empty($filters['title'])) {
         $query->where('title', 'like', '%' . $filters['title'] . '%');
     }
 
-    // Filter by impact
+    // Impact filter
     if (!empty($filters['impact'])) {
         $query->where('impact', 'like', '%' . $filters['impact'] . '%');
     }
@@ -52,10 +53,17 @@ class ActivitiesService
         });
     }
 
-    // Order by newest
+    // Date range filters
+    if (!empty($filters['date_from'])) {
+        $query->whereDate('created_at', '>=', $filters['date_from']);
+    }
+    if (!empty($filters['date_to'])) {
+        $query->whereDate('created_at', '<=', $filters['date_to']);
+    }
+
+    // Order & paginate
     $query->orderBy('created_at', 'desc');
 
-    // Pagination
     if ($perPage) {
         $page = $page ?: LengthAwarePaginator::resolveCurrentPage();
         return $query->paginate($perPage, ['*'], 'page', $page);

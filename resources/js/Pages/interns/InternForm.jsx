@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { User, Building2, Calendar, Upload, GraduationCap } from 'lucide-react';
+import DateInputWithIcon from '@/Layouts/DateInputWithIcon';
+import FileInputWithPreview from '@/Layouts/FileInputWithIcon';
 
 // ✅ Zustand store defined INSIDE the same file
 const useInternFormStore = create((set) => ({
@@ -35,7 +37,13 @@ const useInternFormStore = create((set) => ({
     })),
 
   setFiles: (cvFile, photoFile) =>
-    set(() => ({ cvFile, photoFile })),
+  set((state) => {
+    // If only one file is provided, keep the other from current state
+    return {
+      cvFile: cvFile !== undefined ? cvFile : state.cvFile,
+      photoFile: photoFile !== undefined ? photoFile : state.photoFile,
+    };
+  }),
 
   reset: (initialData = null) =>
     set(() => {
@@ -77,7 +85,7 @@ const InternForm = ({ onSubmit, initialData = null }) => {
 
   // Reset form when initialData changes (e.g. switching to edit mode)
   useEffect(() => {
-    reset(initialData);
+   // reset(initialData);
   }, [initialData, reset]);
 
   const handleChange = (e) => {
@@ -91,6 +99,8 @@ const InternForm = ({ onSubmit, initialData = null }) => {
     } else {
       setFiles(cvFile, file);
     }
+    //console.log("type: ", type);
+    //   console.log("file: ", file);
   };
 
   const handleSubmit = (e) => {
@@ -104,6 +114,9 @@ const InternForm = ({ onSubmit, initialData = null }) => {
             .filter(Boolean)
         : formData.skills,
     };
+    console.log("final data: ",JSON.stringify(finalData));
+    console.log("cv: ",cvFile);
+    console.log("photo: ",photoFile);
     onSubmit(finalData, cvFile, photoFile);
   };
 
@@ -241,7 +254,7 @@ const InternForm = ({ onSubmit, initialData = null }) => {
         <FormSection icon={Calendar} title="Timeline">
           <div>
             <Label>Start Date *</Label>
-            <Input
+            <DateInputWithIcon
               name="from"
               type="date"
               value={formData.from}
@@ -260,22 +273,25 @@ const InternForm = ({ onSubmit, initialData = null }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Upload CV</Label>
-              <Input
-                type="file"
-                onChange={(e) => handleFileChange('cv', e.target.files?.[0])}
-                accept=".pdf,.doc,.docx"
-                className="cursor-pointer"
-              />
+              <FileInputWithPreview
+  name="cv"
+  onChange={(e) => handleFileChange('cv', e.target.value)} // use value, not files
+  accept=".pdf,.doc,.docx"
+  className="cursor-pointer"
+/>
+
               <p className="text-xs text-gray-500 mt-1">PDF, DOC, or DOCX format</p>
             </div>
             <div>
               <Label>Passport Photo</Label>
-              <Input
-                type="file"
-                onChange={(e) => handleFileChange('photo', e.target.files?.[0])}
-                accept="image/*"
-                className="cursor-pointer"
-              />
+ <FileInputWithPreview
+  name="photo"
+  accept="image/png, image/jpeg, image/webp" // restrict to images
+  onChange={(e) => handleFileChange('photo', e.target.value)} // send the actual File object
+  className="cursor-pointer"
+/>
+
+
               <p className="text-xs text-gray-500 mt-1">Maximum size: 2MB</p>
             </div>
           </div>

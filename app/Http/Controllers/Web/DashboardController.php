@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Services\DashboardService;
@@ -16,19 +16,18 @@ class DashboardController extends Controller
         $this->dashboard = $dashboardService;
     }
 
- public function index()
+   public function index()
 {
     $data = $this->dashboard->getDashboardStats();
 
-    return response()->json([
-        'data'       => $data,
+    return Inertia::render("Dashboard", [
+        "data" => $data,
         'activePath' => 'dashboard',
         'flash' => [
             'success' => session('success'),
-            'error'   => session('error'),
+            'error' => session('error'),
         ],
-    ], 200);
+    ]);
 }
-
 
 }

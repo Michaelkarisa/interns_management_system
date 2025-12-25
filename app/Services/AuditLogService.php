@@ -7,18 +7,19 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 class AuditLogService
 {
-    public function log($event, $entityType, $entityId, array $metadata = [])
-    {
-        return AuditLog::create([
-            'user_id'     => Auth::id(),
-            'event'       => $event,
-            'entity_type' => $entityType,
-            'entity_id'   => $entityId,
-            'metadata'    => $metadata,       // stored as JSON
-            'ip'          => request()->ip(),
-            'user_agent'  => request()->userAgent(),
-        ]);
-    }
+   public function log($event, $entityType, $entityId = null, array $metadata = [])
+{
+    return AuditLog::create([
+        'user_id'     => Auth::id(),
+        'event'       => $event,
+        'entity_type' => $entityType,
+        'entity_id'   => $entityId,
+        'metadata'    => json_encode($metadata), // convert array to JSON
+        'ip'          => request()->ip(),
+        'user_agent'  => request()->userAgent(),
+    ]);
+}
+
 
       public function getLogs(array $filters = [], int $perPage = null, int $page = null)
     {

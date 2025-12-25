@@ -6,8 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import ProjectList from './projects/ProjectList';
-import PerformanceBadge from '@/components/ui/PerformanceBadge';
-import RecommendationBadge from '@/components/ui/RecommendationBadge';
+import PerformanceBadge from '@/Layouts/PerformanceBadge';
+import RecommendationBadge from '@/Layouts/RecommendationBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { AlertCircle, Edit, X, Download } from 'lucide-react'; // ✅ Added Download
-import DateInputWithIcon from '@/Components/ui/DateInputWithIcon';
+import DateInputWithIcon from '@/Layouts/DateInputWithIcon';
 
 // ✅ Toast Component (unchanged)
 const Toast = ({ message, type = 'error', onClose }) => {
@@ -414,6 +414,71 @@ const InternProfileContent = ({ isSidebarCollapsed, allData }) => {
     }
   };
 
+const handleDownloadCv = async () => {
+  if (!intern.cv_url) return;
+
+  // Extract original filename from cv_url
+  const originalFilename = intern.cv_url.split('/').pop() || 'cv.pdf';
+  
+  // Generate clean name: MichaelKarisaKahindi_CV_20251220153045.pdf
+  const filename = generateCvFilename(intern.name, originalFilename);
+
+  await downloadPublicFile(intern.cv_url, filename);
+};
+
+const generateCvFilename = (name, originalFilename = 'cv.pdf') => {
+  // Remove special characters and spaces from name
+  const cleanName = name
+    .replace(/[^a-zA-Z0-9\s]/g, '')
+    .split(' ')
+    .filter(Boolean)
+    .join(''); 
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}`;
+
+  // Preserve original extension if available
+  const extMatch = originalFilename.match(/\.([^.]+)$/);
+  const ext = extMatch ? extMatch[1] : 'pdf';
+
+  return `${cleanName}_CV_${timestamp}.${ext}`;
+};
+
+const downloadPublicFile = async (fileUrl, filename) => {
+  try {
+    // Ensure absolute URL (in case fileUrl is relative)
+    const absoluteUrl = fileUrl.startsWith('http')
+      ? fileUrl
+      : `${window.location.origin}${fileUrl.startsWith('/') ? '' : '/'}${fileUrl}`;
+
+    const response = await fetch(absoluteUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to download: ${response.status} ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename; // 👈 custom name here
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  } catch (error) {
+    console.error('Download failed:', error);
+    // Optionally show toast: "Failed to download CV"
+  }
+};
+
   return (
     <div className="p-2 lg:p-2">
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
@@ -455,7 +520,7 @@ const InternProfileContent = ({ isSidebarCollapsed, allData }) => {
           <Card className="rounded-2xl shadow-sm">
             <CardContent className="p-6 flex flex-col items-center">
               <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={intern.passport_photo || undefined} />
+                <AvatarImage src={intern.photo || undefined} />
                 <AvatarFallback className="text-2xl">
                   {intern.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                 </AvatarFallback>
@@ -467,8 +532,8 @@ const InternProfileContent = ({ isSidebarCollapsed, allData }) => {
                 <PerformanceBadge score={performance} />
               </div>
               {intern.cv && (
-                <Button variant="outline" className="mt-4 w-full" asChild>
-                  <a href={intern.cv} download>Download CV</a>
+                <Button variant="outline" className="mt-4 w-full" onClick={handleDownloadCv}>
+                  Download CV
                 </Button>
               )}
             </CardContent>
@@ -657,7 +722,7 @@ const InternProfileContent = ({ isSidebarCollapsed, allData }) => {
 export default function InternProfile() {
    const { props } = usePage();
   const { auth,appIcon, activePath,data } = props;
-
+  console.log("data: ",data);
   return (
     <AdminLayout activePath={activePath} auth={auth}>
       <InternProfileContent isSidebarCollapsed={false} allData={data} />

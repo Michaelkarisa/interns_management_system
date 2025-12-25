@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -32,26 +32,28 @@ class ActivityController extends Controller
         $this->audit    = $auditService;
     }
 
-   public function index()
-{
-    $data = $this->activity->getActivities([], 15, 0);
+    public function index()
+    {
+        $data = $this->activity->getActivities([], 15, 0);
 
-    // Log view event
-    $this->audit->log(
-        'project_list_viewed',
-        'Activity',
-        null,
-        ['count' => count($data)]
-    );
+        // Log view event
+        $this->audit->log(
+            'project_list_viewed',
+            'Activity',
+            null,
+            ['count' => count($data)]
+        );
 
-    return response()->json([
-        'data'       => $data,
-        'activePath' => 'projects',
-    ], 200);
-}
+        return Inertia::render("AllProjects", [
+            "data"       => $data,
+            'activePath' => 'projects',
 
+        ]);
+    }
 
-  public function filter(Request $request)
+ 
+
+public function filter(Request $request)
 {
     $filters = [];
 

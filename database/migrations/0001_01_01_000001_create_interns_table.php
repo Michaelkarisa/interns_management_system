@@ -28,7 +28,7 @@ return new class extends Migration
     $table->boolean('graduated')->default(false);
     $table->boolean('recommended')->default(false);
     $table->integer('performance')->nullable(); // FIXED
-    $table->json('skills')->default(json_encode([]));
+    $table->json('skills')->nullable();
     $table->string('notes')->nullable();
     $table->softDeletes();  // adds deleted_at timestamp
     $table->timestamps();

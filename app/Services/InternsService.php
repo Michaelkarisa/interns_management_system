@@ -16,14 +16,12 @@ public function getInterns(array $filters = [], int $perPage = null, int $page =
     // Status filters
     if (!empty($filters['active'])) {
         $query->where(function ($q) {
-            $q->whereNull('to')
-              ->orWhere('to', '');
+            $q->whereNull('to');
         });
     }
 
     if (!empty($filters['completed'])) {
-        $query->whereNotNull('to')
-              ->where('to', '!=', '');
+        $query->whereNotNull('to');
     }
 
     if (!empty($filters['recommended'])) {
@@ -89,16 +87,13 @@ public function getInterns(array $filters = [], int $perPage = null, int $page =
 public function activeInterns()
 {
     return Intern::where(function ($q) {
-        $q->whereNull('to')
-          ->orWhere('to', '');
+        $q->whereNull('to');
     })->count();
 }
 
 public function completedInterns()
 {
-    return Intern::whereNotNull('to')
-                 ->where('to', '!=', '')
-                 ->count();
+    return Intern::whereNotNull('to')->count();
 }
 
 

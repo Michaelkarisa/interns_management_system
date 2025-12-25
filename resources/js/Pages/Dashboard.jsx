@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import InternCard from '@/Pages/interns/InternCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/Layouts/AdminLayout';
-import AnimatedNumber from '@/components/ui/AnimatedNumber';
+import AnimatedNumber from '@/Layouts/AnimatedNumber';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 
 const useDashboardStore = create((set) => ({

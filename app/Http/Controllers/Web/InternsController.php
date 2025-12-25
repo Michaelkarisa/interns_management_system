@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -30,33 +30,32 @@ class InternsController extends Controller
         $this->audit    = $auditService;
     }
 
- public function index()
-{
-    $data = $this->interns->getInterns([], 15, 0);
+    public function index()
+    {
+        $data = $this->interns->getInterns([], 15, 0);
 
-    // Log the event
-    Log::info('Intern list viewed', [
-        'user_id' => Auth::id(),
-        'count'   => count($data),
-        'route'   => 'interns.index',
-    ]);
+        // Log the event
+        Log::info('Intern list viewed', [
+            'user_id' => Auth::id(),
+            'count'   => count($data),
+            'route'   => 'interns.index',
+        ]);
 
-    // Optional structured audit
-    if ($this->audit) {
-        $this->audit->log(
-            'intern_list_viewed',
-            'Intern',
-            null,
-            ['count' => count($data)]
-        );
+        // Optional structured audit
+        if ($this->audit) {
+            $this->audit->log(
+                'intern_list_viewed',
+                'Intern',
+                null,
+                ['count' => count($data)]
+            );
+        }
+
+        return Inertia::render("InternsList", [
+            "data"       => $data,
+            'activePath' => 'interns',
+        ]);
     }
-
-    return response()->json([
-        'data'       => $data,
-        'activePath' => 'interns',
-    ], 200);
-}
-
 
     public function filter(Request $request)
     {

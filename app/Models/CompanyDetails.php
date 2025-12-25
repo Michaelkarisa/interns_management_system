@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 class CompanyDetails extends Model
 {
     use HasFactory, SoftDeletes;
@@ -25,11 +26,12 @@ class CompanyDetails extends Model
         'logo_path',
         'tax_id',
         'industry',
+        'system_name',
     ];
 
     // The attributes that should be hidden for arrays (optional)
     protected $hidden = [
-        // e.g., sensitive info
+        
     ];
 
     // The attributes that should be cast to native types
@@ -50,4 +52,15 @@ class CompanyDetails extends Model
             }
         });
     }
+    
+     protected $appends = ['appIcon'];
+
+    // ✅ Accessor for passport photo URL
+  public function getAppIconAttribute()
+{
+    return $this->logo_path
+        ? asset('storage/' . $this->logo_path)
+        : asset('images/default-company.png');
+}
+
 }

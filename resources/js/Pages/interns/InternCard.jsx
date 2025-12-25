@@ -2,8 +2,8 @@
 import { usePage, router  } from '@inertiajs/react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import PerformanceBadge from '../../Components/ui/PerformanceBadge';
-import RecommendationBadge from '../../Components/ui/RecommendationBadge';
+import PerformanceBadge from '../../Layouts/PerformanceBadge';
+import RecommendationBadge from '@/Layouts/RecommendationBadge';
 import { Button } from '@/Components/ui/button';
 import { User, ArrowRight } from 'lucide-react'; // Make sure you import the icons
 

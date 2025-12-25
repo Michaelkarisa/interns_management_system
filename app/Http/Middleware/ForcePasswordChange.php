@@ -1,17 +1,15 @@
 <?php
-
 namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ForcePasswordChange
 {
     /**
      * Handle an incoming request.
      *
-     * Redirects users to the password change page if they must change their password.
+     * For API requests, returns a JSON response if the user must change their password.
      *
      * @param  Request  $request
      * @param  Closure  $next
@@ -21,9 +19,16 @@ class ForcePasswordChange
     {
         $user = $request->user();
 
-        // Only check authenticated users
         if ($user && $user->must_change_password) {
-            // Allow accessing the password change routes themselves
+            // Detect if request expects JSON (API request)
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Password change required',
+                    'force_password_change' => true,
+                ], 403);
+            }
+
+            // Web route fallback (optional)
             if (!$request->routeIs('password.force') &&
                 !$request->routeIs('password.force.update')) {
                 return redirect()->route('password.force');

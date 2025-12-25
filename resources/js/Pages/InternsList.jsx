@@ -7,15 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import PerformanceBadge from '@/components/ui/PerformanceBadge';
-import RecommendationBadge from '@/components/ui/RecommendationBadge';
+import PerformanceBadge from '@/Layouts/PerformanceBadge';
+import RecommendationBadge from '@/Layouts/RecommendationBadge';
 import AdminLayout from '@/Layouts/AdminLayout';
 import InternForm from './interns/InternForm';
 import { User, ArrowRight, AlertCircle, Download } from 'lucide-react';
-import { PaginationControls } from '@/Components/ui/PaginationControls';
+import { PaginationControls } from '@/Layouts/PaginationControls';
 // src/store/useInternsStore.js
 import { create } from 'zustand';
-import DateInputWithIcon from '@/Components/ui/DateInputWithIcon';
+import DateInputWithIcon from '@/Layouts/DateInputWithIcon';
 
 export const useInternsStore = create((set, get) => ({
   // Filters
@@ -233,7 +233,7 @@ const InternTableRow = ({ intern, onViewProfile }) => (
   <motion.tr initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.2 }}>
     <TableCell>
       <Avatar className="h-8 w-8">
-        <AvatarImage src={intern?.passport_photo || undefined} alt={`${intern.name}'s avatar`} />
+        <AvatarImage src={intern?.photo || undefined} alt={`${intern.name}'s avatar`} />
         <AvatarFallback>{intern.name.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
     </TableCell>
@@ -317,7 +317,7 @@ const InternsListContent = ({ isSidebarCollapsed, allData }) => {
       setLoading(true);
       try {
         const params = { page, ...filters };
-        const response = await axios.get('/filterInterns', { params });
+        const response = await axios.get('/interns/filter', { params });
           console.log("params: ", params);
       console.log("data: ", response.data);
         setInternsData(response.data);
@@ -363,58 +363,118 @@ const InternsListContent = ({ isSidebarCollapsed, allData }) => {
     }
   }, [filters, showToast, setLoadingReport]);
 
-  const postIntern = async (data, cvFile, photoFile) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (value == null || value === '') return;
-      if (key === 'skills' && Array.isArray(value)) {
-        value.forEach((skill) => formData.append('skills[]', skill));
-      } else if (Array.isArray(value)) {
-        value.forEach((item) => formData.append(`${key}[]`, item));
-      } else {
-        formData.append(key, value);
-      }
-    });
-    if (cvFile) formData.append('cv', cvFile);
-    if (photoFile) formData.append('photo', photoFile);
+const postIntern = async (data, cvFile, photoFile) => {
+  console.log("📥 [4] postIntern received data:", data);
+  console.log("📎 cvFile:", cvFile?.name || 'none');
+  console.log("👤 photoFile:", photoFile?.name || 'none');
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    return axios.post('/interns/addintern', formData, {
-      headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'multipart/form-data' },
-    });
-  };
+  const formData = new FormData();
+  let entryCount = 0;
+
+  Object.entries(data).forEach(([key, value]) => {
+    console.log(" ➕ Processing field:", key, "=", value, "| Type:", typeof value);
+    if (value == null || value === '') {
+      console.log("   → Skipped (null/empty)");
+      return;
+    }
+    if (key === 'skills' && Array.isArray(value)) {
+      value.forEach((skill) => {
+        formData.append('skills[]', skill);
+        entryCount++;
+        console.log("   → Appended skills[]:", skill);
+      });
+    } else if (Array.isArray(value)) {
+      value.forEach((item) => {
+        formData.append(`${key}[]`, item);
+        entryCount++;
+        console.log("   → Appended", `${key}[]`, ":", item);
+      });
+    } else {
+      formData.append(key, value);
+      entryCount++;
+      console.log("   → Appended", key, ":", value);
+    }
+  });
+
+  if (cvFile) {
+    formData.append('cv', cvFile);
+    entryCount++;
+    console.log("   → Appended file: cv");
+  }
+  if (photoFile) {
+    formData.append('photo', photoFile);
+    entryCount++;
+    console.log("   → Appended file: photo");
+  }
+
+  console.log("📊 Total FormData entries:", entryCount);
+  if (entryCount === 0) {
+    console.error("💀 FormData is completely empty!");
+  }
+
+  return axios.post('/interns/addintern', formData);
+};
 
   const handleInternSubmit = async (data, cvFile, photoFile) => {
-    try {
-      const cleaned = { ...data, name: data.name?.trim(), email: data.email?.trim() };
-      if (!cleaned.name || !cleaned.email || !cleaned.from) {
-        showToast('Please fill in all required fields (Name, Email, Start Date)', 'error');
-        return;
+  try {
+    // ✅ Helper to format Date objects to YYYY-MM-DD
+    const formatDate = (value) => {
+      if (!value) return null;
+      if (value instanceof Date) {
+        // Converts to "2025-12-10"
+        return value.toISOString().split('T')[0];
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(cleaned.email)) {
-        showToast('Please enter a valid email address', 'error');
-        return;
-      }
-      if (photoFile && photoFile.size > 4096 * 1024) {
-        showToast('Photo file size must not exceed 4MB.', 'error');
-        return;
-      }
-      if (cvFile && cvFile.size > 10240 * 1024) {
-        showToast('CV file size must not exceed 10MB.', 'error');
-        return;
-      }
+      // If it's already a string (e.g., from initialData), return as-is
+      return value;
+    };
 
-      await postIntern(cleaned, cvFile, photoFile);
-      showToast('Intern added successfully!', 'success');
-      setShowForm(false);
-      fetchInterns();
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to add intern';
-      showToast(msg, 'error');
+    const cleaned = {
+  ...data,
+  name: data.name?.trim(),
+  email: data.email?.trim(),
+  phone: data.phone?.trim(),
+  institution: data.institution?.trim(),
+  position: data.position?.trim(),
+  course: data.course?.trim(),
+  department: data.department?.trim(),
+  from: formatDate(data.from),
+  to: formatDate(data.to),
+  // ✅ Convert booleans to 1/0
+  graduated: data.graduated ? 1 : 0,
+  recommended: data.recommended ? 1 : 0,
+};
+    // Validation
+    if (!cleaned.name || !cleaned.email || !cleaned.from) {
+      showToast('Please fill in all required fields (Name, Email, Start Date)', 'error');
+      return;
     }
-  };
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleaned.email)) {
+      showToast('Please enter a valid email address', 'error');
+      return;
+    }
+
+    if (photoFile && photoFile.size > 4096 * 1024) {
+      showToast('Photo file size must not exceed 4MB.', 'error');
+      return;
+    }
+    if (cvFile && cvFile.size > 10240 * 1024) {
+      showToast('CV file size must not exceed 10MB.', 'error');
+      return;
+    }
+
+    console.log("formdata cleaned: ", cleaned);
+    await postIntern(cleaned, cvFile, photoFile);
+
+    showToast('Intern added successfully!', 'success');
+    setShowForm(false);
+    fetchInterns();
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Failed to add intern';
+    showToast(msg, 'error');
+  }
+};
   const handlePageChange = useCallback(
     (url) => {
       if (!url) return;

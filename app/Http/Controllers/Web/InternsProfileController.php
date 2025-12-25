@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\StoreInternRequest;
 use App\Http\Requests\UpdateInternRequest;
-
+use Illuminate\Support\Facades\Storage;
 // InternController.php
 use Barryvdh\DomPDF\Facade\Pdf;
 class InternsProfileController extends Controller
@@ -32,34 +32,35 @@ class InternsProfileController extends Controller
         $this->audit    = $auditService;
     }
 
- public function index(string $id)
-{
-    $data = $this->interns->getIntern($id);
+    public function index(string $id)
+    {
+        $data = $this->interns->getIntern($id);
+    
 
-    // Log view
-    Log::info('Intern profile viewed', [
-        'user_id'   => Auth::id(),
-        'intern_id' => $id,
-    ]);
+        // Log view
+        Log::info('Intern profile viewed', [
+            'user_id'  => Auth::id(),
+            'intern_id'=> $id,
+        ]);
 
-    if ($this->audit) {
-        $this->audit->log(
-            'intern_profile_viewed',
-            'Intern',
-            $id,
-            []
-        );
+        if ($this->audit) {
+            $this->audit->log(
+                'intern_profile_viewed',
+                'Intern',
+                $id,
+                []
+            );
+        }
+
+        return Inertia::render('InternProfile', [
+            'activePath' => 'interns',
+            'data'       => $data,
+        ]);
     }
 
-    return response()->json([
-        'data'       => $data,
-        'activePath' => 'interns',
-    ], 200);
-}
-
-
-    public function store(StoreInternRequest $request)
-    {
+   public function store(StoreInternRequest $request)
+{
+    try {
         $data = $request->validated();
 
         if ($request->hasFile('cv')) {
@@ -75,8 +76,8 @@ class InternsProfileController extends Controller
 
         // Log creation
         Log::info('Intern created', [
-            'user_id'  => Auth::id(),
-            'intern_id'=> $intern->id,
+            'user_id'   => Auth::id(),
+            'intern_id' => $intern->id,
         ]);
 
         if ($this->audit) {
@@ -92,7 +93,20 @@ class InternsProfileController extends Controller
             'message' => 'success',
             'data'    => $intern
         ], 201);
+
+    } catch (\Exception $e) {
+        Log::error('Error creating intern', [
+            'message' => $e->getMessage(),
+            'trace'   => $e->getTraceAsString(),
+        ]);
+
+        return response()->json([
+            'message' => 'Failed to create intern',
+            'error'   => $e->getMessage(),
+        ], 500);
     }
+}
+
 
     public function update(UpdateInternRequest $request, string $id)
     {

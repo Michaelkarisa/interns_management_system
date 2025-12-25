@@ -24,8 +24,8 @@ export default function Login({ status, canResetPassword }) {
     };
 
     return (
-        <GuestLayout>
-            <Head title="Log in" />
+        <GuestLayout currentPage='login'>
+            <Head title="Login" />
 
             <div className="flex w-full items-center justify-center p-4">
                 <div className="w-full max-w-md text-gray-700">
@@ -89,31 +89,16 @@ export default function Login({ status, canResetPassword }) {
                         </div>
 
                        {/* ACTIONS */}
-<div className="flex items-center justify-between mt-4">
-  {canResetPassword && (
-    <Link
-      href={route('password.request')}
-      className="rounded-md text-sm text-gray-600 underline hover:text-gray-900"
-    >
-      Forgot password?
-    </Link>
-  )}
+                            <div className="flex items-center justify-between pt-2">
+                                <Link
+                                    href={route('password.request')}
+                                    className="rounded-md text-sm text-gray-600 underline hover:text-gray-900"
+                                >
+                                    forget password?
+                                </Link>
+                                <PrimaryButton disabled={processing}>Login</PrimaryButton>
+                            </div>
 
-  <PrimaryButton disabled={processing}>
-    Log in
-  </PrimaryButton>
-</div>
-
-{/* SIGN UP LINK */}
-<div className="mt-4  text-sm text-gray-600">
-  Don't have an account?{' '}
-  <Link
-    href={route('register')}
-    className="text-blue-600 underline hover:text-blue-800"
-  >
-    Sign up
-  </Link>
-</div>
                     </form>
                 </div>
             </div>

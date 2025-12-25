@@ -68,13 +68,13 @@ export default function Register() {
     };
 
     return (
-        <GuestLayout>
+        <GuestLayout currentPage='register'>
             <Head title="Register" />
 
             <div className="min-h-screen flex flex-col md:flex-row">
-                <div className="flex w-full items-center justify-center p-4">
+                <div className="flex w-full items-start justify-center pt-6 px-4">
                     <div className="w-full max-w-md">
-                        <form onSubmit={submit} className="space-y-4">
+                        <form onSubmit={submit} className="space-y-1">
                             {/* NAME */}
                             <div>
                                 <InputLabel htmlFor="name" value="Name" />

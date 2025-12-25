@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -27,16 +27,15 @@ class AuditController extends Controller
         $this->audit    = $auditService;
     }
 
-  public function index()
-{
-    $data = $this->audit->getLogs([], 15, 0);
+    public function index(){
+     $data = $this->audit->getLogs([], 15, 0);
 
-    return response()->json([
-        'data'       => $data,
-        'activePath' => 'auditlogs',
-    ], 200);
-}
 
+        return Inertia::render("AuditLogs", [
+             "data"       => $data,
+            'activePath' => 'auditlogs',
+        ]);
+    }
 
     public function filter(Request $request){
         $rawFilters = [

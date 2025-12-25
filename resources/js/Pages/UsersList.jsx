@@ -27,7 +27,7 @@ import {
   Download,
 } from "lucide-react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { PaginationControls } from '@/Components/ui/PaginationControls';
+import { PaginationControls } from '@/Layouts/PaginationControls';
 import {
   Dialog,
   DialogContent,

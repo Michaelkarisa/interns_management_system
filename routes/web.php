@@ -1,22 +1,24 @@
 <?php
 
-use App\Http\Controllers\Api\ActivityController;
-use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\InternsController;
-use App\Http\Controllers\Api\SettingsController;
-use App\Http\Controllers\Api\AddInternController;
-use App\Http\Controllers\Api\InternsProfileController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Api\AuditController;
-use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use Illuminate\Support\Facades\Config;
+use App\Http\Controllers\Web\ActivityController;
+use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\InternsController;
+use App\Http\Controllers\Web\SettingsController;
+use App\Http\Controllers\Web\InternsProfileController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Web\AuditController;
 use App\Http\Controllers\ForcedPasswordController;
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
+
 use Inertia\Inertia;
-use App\Models\CompanyDetails;
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
+    return Inertia::render('Auth/Login', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
@@ -35,8 +37,8 @@ Route::middleware(['auth', 'verified', 'checkrole:super_admin|admin', 'force_pas
     Route::post('/interns/addintern',[InternsProfileController::class, 'store'])->name('addIntern');
     Route::get('/interns/profile/{id}',[InternsProfileController::class,'index'])->name('internProfile');
     Route::post('/interns/update/{id}',[InternsProfileController::class,'update'])->name('updateIntern');
-    Route::get('/filterInterns', [InternsController::class,'filter'])->name('filterInterns');
-    Route::get('/filterProjects', [ActivityController::class,'filter'])->name('filterProjects');
+    Route::get('/interns/filter', [InternsController::class,'filter'])->name('filterInterns');
+    Route::get('/projects/filter', [ActivityController::class,'filter'])->name('filterProjects');
     Route::post('/projects/add', [ActivityController::class,'store'])->name('addProject');
     Route::post('/projects/update/{id}', [ActivityController::class,'update'])->name('updateProject');
     Route::delete('/projects', [ActivityController::class, 'destroy'])->name('deleteProject');
@@ -58,7 +60,7 @@ Route::middleware(['auth','checkrole:super_admin', 'force_password_change'])->gr
     Route::get('/users', [UserController::class,'index'])->name('users');
     Route::get('/users/filter',[UserController::class,'filter'])->name('filterUsers');
     Route::get('/auditlogs',[AuditController::class,'index'])->name('auditlogs');
-    Route::get('/filterLogs',[AuditController::class,'filter'])->name('filterLogs');
+    Route::get('/auditlogs/filter',[AuditController::class,'filter'])->name('filterLogs');
     Route::post('/users/register',[UserController::class,'store']);
     // routes/web.php (or api.php if using API auth)
     Route::get('/users/report', [UserController::class, 'generateReport'])->name('users.report');
@@ -84,6 +86,14 @@ Route::middleware(['auth', 'force_password_change'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+Route::get('/debug', function () {
+    return [
+        'session.driver' => Config::get('session.driver'),
+        'session.domain' => Config::get('session.domain'),
+        'sanctum.stateful' => Config::get('sanctum.stateful'),
+        'app.url' => Config::get('app.url'),
+    ];
 });
 
 require __DIR__.'/auth.php';

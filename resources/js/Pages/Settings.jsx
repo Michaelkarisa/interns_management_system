@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 
 import { create } from 'zustand';
+import FileInputWithPreview from '@/Layouts/FileInputWithIcon';
 
 export const useCompanyStore = create((set) => ({
   company: null,
@@ -87,6 +88,7 @@ const CompanyProfileForm = ({ company, onSave, onCancel }) => {
 
   const handleLogoChange = (e) => {
     const file = e.target.files?.[0];
+    console.log("file: ",file);
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
         showToast('Logo must be less than 2MB', 'error');
@@ -164,11 +166,11 @@ const CompanyProfileForm = ({ company, onSave, onCancel }) => {
               </div>
             )}
             <div className="flex-1 min-w-[200px]">
-              <input
+              <Input
                 type="file"
                 accept="image/*"
                 onChange={handleLogoChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-1/3 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               />
               <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 2MB</p>
             </div>
