@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyDetails;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use App\Models\Intern;
 use App\Services\ActivitiesService;
@@ -45,7 +47,7 @@ class ActivityController extends Controller
     );
 
     return response()->json([
-        'data'       => $data,
+        'data'       => $data, 
         'activePath' => 'projects',
     ], 200);
 }
@@ -180,8 +182,16 @@ $projects = $this->activity->reportQuery($request);
     // -----------------------------
     // GENERATE PDF
     // -----------------------------
-    $pdf = Pdf::loadView('reports.projects', compact('projects'))
-               ->setPaper('a4', 'landscape');
+    $company = CompanyDetails::first();
+    $appName = $company ? $company->system_name :'';
+    $appicon = null;
+        if ($company && $company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
+            // Absolute path required for DOMPDF
+            $appicon = Storage::disk('public')->path($company->logo_path);
+        }
+    $pdf = Pdf::loadView('reports.projects', compact('projects', 'appName', 'appicon'))
+               ->setPaper('a4', 'landscape')
+               ->setOption('enable-local-file-access', true);
 
     return $pdf->download('projects-report-' . now()->format('Y-m-d') . '.pdf');
 }

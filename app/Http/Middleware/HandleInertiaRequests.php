@@ -33,9 +33,7 @@ class HandleInertiaRequests extends Middleware
 {
     $company = CompanyDetails::first();
 
-    $favicon = $company && $company->logo_path 
-        ? Storage::url($company->logo_path) 
-        : asset('favicon.ico'); // fallback
+    $favicon = $company->appIcon; // fallback
 
     $appname = $company && $company->system_name 
         ? $company->system_name 

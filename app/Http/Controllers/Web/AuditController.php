@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyDetails;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use App\Services\SecurityService;
 use App\Services\AuditLogService;
@@ -82,11 +84,22 @@ public function generateReport(Request $request)
     // -----------------------------
     // GENERATE PDF
     // -----------------------------
-    $pdf = Pdf::loadView('reports.audit-logs', compact('logs'))
-              ->setPaper('a4', 'landscape');
+   $company = CompanyDetails::first();
+    $appName = $company ? $company->system_name :'';
+$appicon = null;
+        if ($company && $company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
+            // Absolute path required for DOMPDF
+            $appicon = Storage::disk('public')->path($company->logo_path);
+        }
+    $pdf = Pdf::loadView('reports.audit-logs', [
+        'logs'=>$logs,
+        'appName'=>$appName,
+        'appicon'=> $appicon
+    ])
+               ->setPaper('a4', 'landscape')
+               ->setOption('enable-local-file-access', true);
 
-    return $pdf->download('audit-logs-' . now()->format('Y-m-d') . '.pdf');
+    return $pdf->download('logs-report-' . now()->format('Y-m-d') . '.pdf');
 }
-
 
 }

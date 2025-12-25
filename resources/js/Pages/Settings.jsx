@@ -72,7 +72,7 @@ const CompanyProfileForm = ({ company, onSave, onCancel }) => {
     system_name: company?.system_name|| '',
   });
   const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(company?.logo_url || null);
+  const [logoPreview, setLogoPreview] = useState(company?.appIcon || null);
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState(null);
   const [errors, setErrors] = useState({});
@@ -152,7 +152,7 @@ const CompanyProfileForm = ({ company, onSave, onCancel }) => {
                   type="button"
                   onClick={() => {
                     setLogoFile(null);
-                    setLogoPreview(company?.logo_url || null);
+                    setLogoPreview(company?.appIcon || null);
                   }}
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   aria-label="Remove logo"
@@ -309,9 +309,9 @@ const CompanyProfileDisplay = ({ company, onEdit }) => {
       <div className="space-y-6">
         {/* Logo */}
         <div className="flex items-center gap-4">
-          {company?.logo_url ? (
+          {company?.appIcon ? (
             <img
-              src={company.logo_url}
+              src={company.appIcon}
               alt="Company logo"
               className="h-20 w-20 object-contain rounded-md border"
             />
@@ -406,6 +406,7 @@ const CompanyProfileCard = ({ company, onProfileUpdated }) => {
 
   const handleEdit = () => setEditMode(true);
   const handleCancel = () => setEditMode(false);
+  console.log('company: ',company);
   const handleSave = (updatedCompany) => {
     setEditMode(false);
     if (onProfileUpdated) onProfileUpdated(updatedCompany);

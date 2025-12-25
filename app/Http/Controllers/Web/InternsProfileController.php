@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyDetails;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Intern;
@@ -16,6 +17,7 @@ use App\Http\Requests\UpdateInternRequest;
 use Illuminate\Support\Facades\Storage;
 // InternController.php
 use Barryvdh\DomPDF\Facade\Pdf;
+
 class InternsProfileController extends Controller
 {
     protected $interns;
@@ -168,15 +170,14 @@ class InternsProfileController extends Controller
 
 
 
+
+
 public function generateProfileReport(string $id)
 {
-    $intern = $this->interns->getIntern($id);
+    try {
+        $intern = $this->interns->getIntern($id);
 
-    $pdf = Pdf::loadView('reports.intern-profile', [
-        'intern' => $intern,
-        'projects' => $intern->activities
-    ])->setPaper('a4', 'portrait');
-     if ($this->audit) {
+        if ($this->audit) {
             $this->audit->log(
                 'intern_report_generated',
                 'Intern',
@@ -184,6 +185,45 @@ public function generateProfileReport(string $id)
                 ['name' => $intern->name ?? null]
             );
         }
-    return $pdf->download("intern-profile-{$intern->id}.pdf");
+
+        $company  = CompanyDetails::first();
+        $appName  = $company ? $company->system_name : '';
+
+        $appicon = null;
+        if ($company && $company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
+            // Absolute path required for DOMPDF
+            $appicon = Storage::disk('public')->path($company->logo_path);
+        }
+
+        $pdf = Pdf::loadView('reports.intern-profile', [
+                'intern'   => $intern,
+                'projects' => $intern->activities,
+                'appicon'  => $appicon,
+                'appName'  => $appName,
+            ])
+            ->setPaper('a4', 'landscape')
+            ->setOption('enable-local-file-access', true);
+
+        return $pdf->download('intern-report-' . now()->format('Y-m-d') . '.pdf');
+
+    } catch (\Throwable $e) {
+        Log::error('Failed to generate intern profile report', [
+            'intern_id' => $id,
+            'error'     => $e->getMessage(),
+            'trace'     => $e->getTraceAsString(),
+        ]);
+
+        // Optional: return a user-friendly response
+        return response()->json([
+            'message' => 'Failed to generate intern profile report.',
+        ], 500);
+    }
 }
+
+
+
+
+
+
+
 }

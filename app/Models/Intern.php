@@ -1,16 +1,21 @@
 <?php
 
 namespace App\Models;
+
+use App\Models\Activity;
 use App\Models\ActivityTeam;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Intern extends Model
 {
     use HasFactory, SoftDeletes;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id',
@@ -33,21 +38,21 @@ class Intern extends Model
     ];
 
     protected $casts = [
-        'skills'     => 'array',
-        'graduated'  => 'boolean',
-        'recommended'=> 'boolean',
-        'from'       => 'date',
-        'to'         => 'date',
+        'skills'      => 'array',
+        'graduated'   => 'boolean',
+        'recommended' => 'boolean',
+        'from'        => 'date',
+        'to'          => 'date',
     ];
 
-    public $incrementing = false;
-    protected $keyType = 'string';
+    protected $appends = [
+        'avatar_url',
+    ];
 
     protected static function boot()
     {
         parent::boot();
 
-        // Generate UUID on creation
         static::creating(function ($intern) {
             if (empty($intern->id)) {
                 $intern->id = strtoupper(str_replace('-', '', Str::uuid()));
@@ -55,25 +60,57 @@ class Intern extends Model
         });
     }
 
+    /* ----------------------------------------------------
+     | Relationships
+     | ----------------------------------------------------
+     */
+
     public function activities()
     {
         return $this->hasMany(Activity::class, 'intern_id');
     }
 
-   /**
- * Activities where this intern is a team member (via activity_team pivot).
- */
-public function activityTeams()
-{
-    return $this->belongsToMany(
-            Activity::class,      // Related model
-            'activity_team',      // Pivot table
-            'intern_id',          // Foreign key on pivot table for this model
-            'activity_id'         // Foreign key on pivot table for related model
-        )
-        ->using(ActivityTeam::class)  // Use custom pivot model
-        ->withTimestamps()            // Include created_at & updated_at
-        ->withPivot(['deleted_at']);  // Include deleted_at for soft deletes
-}
+    public function activityTeams()
+    {
+        return $this->belongsToMany(
+                Activity::class,
+                'activity_team',
+                'intern_id',
+                'activity_id'
+            )
+            ->using(ActivityTeam::class)
+            ->withTimestamps()
+            ->withPivot(['deleted_at']);
+    }
 
+    /* ----------------------------------------------------
+     | Accessors
+     | ----------------------------------------------------
+     */
+
+    /**
+     * Avatar URL (browser / API)
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        return $this->passport_photo
+            ? asset('storage/' . ltrim($this->passport_photo, '/'))
+            : asset('images/default-avatar.png');
+    }
+
+    /**
+     * Absolute avatar path (PDF / filesystem)
+     */
+    public function getAvatarPathAttribute(): ?string
+    {
+        if (!$this->passport_photo) {
+            return null;
+        }
+
+        if (!Storage::disk('public')->exists($this->passport_photo)) {
+            return null;
+        }
+
+        return Storage::disk('public')->path($this->passport_photo);
+    }
 }

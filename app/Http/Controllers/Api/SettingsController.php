@@ -87,10 +87,6 @@ class SettingsController extends Controller
             $company->fill($dataToSave);
             $company->save();
 
-            if ($company->logo_path) {
-                $company->logo_url = Storage::url($company->logo_path);
-            }
-
             // Compute changes for audit logging
             $changes = [];
             foreach ($dataToSave as $key => $value) {

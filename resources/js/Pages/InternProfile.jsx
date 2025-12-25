@@ -520,7 +520,7 @@ const downloadPublicFile = async (fileUrl, filename) => {
           <Card className="rounded-2xl shadow-sm">
             <CardContent className="p-6 flex flex-col items-center">
               <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={intern.photo || undefined} />
+                <AvatarImage src={intern.avatar_url || undefined} />
                 <AvatarFallback className="text-2xl">
                   {intern.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                 </AvatarFallback>

@@ -24,11 +24,6 @@ class SettingsController extends Controller
     }
     public function index() {
     $company = CompanyDetails::first();
-
-    if ($company && $company->logo_path) {
-        $company->logo_url = Storage::url($company->logo_path);
-    }
-
     return Inertia::render("Settings", [
         'activePath' => 'settings',
         'company'    => $company,

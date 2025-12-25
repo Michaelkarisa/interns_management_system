@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyDetails;
 use App\Services\SecurityService;
 use App\Services\UserService;
 use App\Services\AuditLogService;
@@ -10,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
@@ -220,8 +222,16 @@ public function generateReport(Request $request)
      * 📄 Generate the PDF
      * -----------------------------------------------------
      */
-    $pdf = Pdf::loadView('reports.users', compact('users'))
-               ->setPaper('a4', 'portrait');
+   $company = CompanyDetails::first();
+    $appName = $company ? $company->system_name :'';
+    $appicon = null;
+        if ($company && $company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
+            // Absolute path required for DOMPDF
+            $appicon = Storage::disk('public')->path($company->logo_path);
+        }
+    $pdf = Pdf::loadView('reports.users', compact('users', 'appName', 'appicon'))
+               ->setPaper('a4', 'potrait')
+               ->setOption('enable-local-file-access', true);
 
     return $pdf->download('users-report-' . now()->format('Y-m-d') . '.pdf');
 }

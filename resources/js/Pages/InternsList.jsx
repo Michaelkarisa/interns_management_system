@@ -233,7 +233,7 @@ const InternTableRow = ({ intern, onViewProfile }) => (
   <motion.tr initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.2 }}>
     <TableCell>
       <Avatar className="h-8 w-8">
-        <AvatarImage src={intern?.photo || undefined} alt={`${intern.name}'s avatar`} />
+        <AvatarImage src={intern?.avatar_url || undefined} alt={`${intern.name}'s avatar`} />
         <AvatarFallback>{intern.name.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
     </TableCell>

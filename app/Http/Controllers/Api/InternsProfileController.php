@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyDetails;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use App\Models\Intern;
 use App\Services\InternsService;
@@ -157,11 +159,6 @@ class InternsProfileController extends Controller
 public function generateProfileReport(string $id)
 {
     $intern = $this->interns->getIntern($id);
-
-    $pdf = Pdf::loadView('reports.intern-profile', [
-        'intern' => $intern,
-        'projects' => $intern->activities
-    ])->setPaper('a4', 'portrait');
      if ($this->audit) {
             $this->audit->log(
                 'intern_report_generated',
@@ -170,6 +167,23 @@ public function generateProfileReport(string $id)
                 ['name' => $intern->name ?? null]
             );
         }
-    return $pdf->download("intern-profile-{$intern->id}.pdf");
+    $company = CompanyDetails::first();
+    $appName = $company ? $company->system_name :'';
+   $appicon = null;
+        if ($company && $company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
+            // Absolute path required for DOMPDF
+            $appicon = Storage::disk('public')->path($company->logo_path);
+        }
+    $pdf = Pdf::loadView('reports.intern-profile', 
+    [
+        'intern' => $intern,
+        'projects' => $intern->activities,
+        'appicon'=> $appicon,
+        'appName'=> $appName
+    ])
+               ->setPaper('a4', 'landscape')
+               ->setOption('enable-local-file-access', true);
+
+    return $pdf->download('intern-report-' . now()->format('Y-m-d') . '.pdf');
 }
 }

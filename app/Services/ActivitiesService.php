@@ -137,7 +137,7 @@ public function getActivities(array $filters = [], int $perPage = null, int $pag
     }
 
     public function reportQuery(Request $request){
- $query = Activity::with('intern', 'team'); // adjust based on your relations
+       $query = Activity::with('intern', 'team'); // adjust based on your relations
 
     // -----------------------------
     // SEARCH FILTER
